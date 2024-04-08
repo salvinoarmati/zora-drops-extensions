@@ -37,20 +37,32 @@ contract OviatorsExchangeMinterModule is
 
     event UpdatedColor(string color, ColorSetting settings);
     event UpdatedDescription(string newDescription);
+    event UpdatedImagesBase(string newBase);
+    event UpdatedRendererBase(string newBase);
 
     ERC721Drop public immutable source;
     ERC721Drop public immutable sink;
 
     string description;
+    string imagesBase;
+    string rendererBase;
     string public contractURI;
 
     mapping(string => ColorInfo) public colors;
     mapping(uint256 => string) public idToColor;
 
-    constructor(IERC721Drop _source, IERC721Drop _sink, string memory _description) {
+    constructor(
+        IERC721Drop _source, 
+        IERC721Drop _sink,
+        string memory _imagesBase,
+        string memory _rendererBase,
+        string memory _description
+    ) {
         source = ERC721Drop(payable(address(_source)));
         sink = ERC721Drop(payable(address(_sink)));
         description = _description;
+        imagesBase = _imagesBase;
+        rendererBase = _rendererBase;
     }
 
     uint128 public maxCount;
@@ -61,6 +73,22 @@ contract OviatorsExchangeMinterModule is
     {
         description = newDescription;
         emit UpdatedDescription(newDescription);
+    }
+
+    function setImagesBase(string memory newBase)
+        external
+        requireSenderAdmin(address(source))
+    {
+        imagesBase = newBase;
+        emit UpdatedImagesBase(newBase);
+    }
+
+    function setRendererBase(string memory newBase)
+        external
+        requireSenderAdmin(address(source))
+    {
+        rendererBase = newBase;
+        emit UpdatedRendererBase(newBase);
     }
 
     function setContractURI(string memory newContractURI)
@@ -138,17 +166,14 @@ contract OviatorsExchangeMinterModule is
     }
 
     function tokenURI(uint256 tokenId) external view returns (string memory) {
-        string memory color = idToColor[tokenId];
-        ColorInfo storage colorInfo = colors[color];
-
         return
             NFTMetadataRenderer.createMetadataEdition({
-                name: string(abi.encodePacked(sink.name(), " ", color)),
+                name: "Oviators", // Token ID is added by NFTMetadataRenderer
                 description: description,
-                imageURI: colorInfo.imageURI,
-                animationURI: colorInfo.animationURI,
+                imageURI: string(abi.encodePacked(imagesBase, tokenId, ".png")),
+                animationURI: string(abi.encodePacked(rendererBase, tokenId)),
                 tokenOfEdition: tokenId,
-                editionSize: maxCount
+                editionSize: 0 // We don't want the NFTMetadataRenderer to name these editioned
             });
     }
 }

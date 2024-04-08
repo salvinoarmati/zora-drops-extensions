@@ -75,7 +75,9 @@ contract DeployOviators is Script {
         OviatorsExchangeMinterModule exchangeMinterModule = new OviatorsExchangeMinterModule({
                 _source: IERC721Drop(adrs.nounsDiscoAddress),
                 _sink: IERC721Drop(adrs.nounsDiscoRedeemedAddress),
-                _description: "Nouns Vision Disco Redeemed"
+                _imagesBase: "ipfs://bafybeigrptpotjop47aptsruxngmpzfbqqc77ozntjc5ixms2iutcwrfpu/",
+                _rendererBase: "ipfs://bafybeidwdlcqc2eidjqq7afzy3hctmpav3fnrf7g2zhatvznfaoktixvoe/?id=",
+                _description: "Oviators are a limited edition, collectible eyewear collaboration between Salvino Armati and Jack Butcher"
             });
 
         // Allow exchange module to mint redeemed tokens
