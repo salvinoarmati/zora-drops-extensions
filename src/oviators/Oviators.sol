@@ -119,6 +119,10 @@ contract Oviators is ERC721, Ownable {
             );
     }
 
+    function totalSupply() external pure returns (uint256) {
+        return 1717;
+    }
+
     function encodeMetadataJSON(bytes memory json) internal pure returns (string memory) {
         return
             string(
