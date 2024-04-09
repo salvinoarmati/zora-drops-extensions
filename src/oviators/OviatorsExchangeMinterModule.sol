@@ -26,7 +26,6 @@ contract OviatorsExchangeMinterModule is
 
     event ExchangedTokens(
         address indexed sender,
-        uint256 indexed resultChunk,
         uint256 targetLength,
         uint256[] fromIds
     );
@@ -138,22 +137,25 @@ contract OviatorsExchangeMinterModule is
         );
         colors[color].claimedCount += targetLength;
 
-        uint256 resultChunk = sink.adminMint(msg.sender, targetLength);
-        for (uint256 i = 0; i < targetLength; ) {
+        // last minted token id
+        for (uint256 i = 0; i < targetLength;) {
             require(source.ownerOf(fromIds[i]) == msg.sender, "Not owned by sender");
 
             // If the user (account) is able to burn then they also are able to exchange.
             // If they are not allowed, the burn call will fail.
             source.burn(fromIds[i]);
+
+            // Transfer the token from the contract to the sender
+            // Assumes token owned by collection contract + address(this) approved
+            sink.transferFrom(address(this), msg.sender, fromIds[i]);
+
             unchecked {
-                idToColor[resultChunk - i] = color;
                 ++i;
             }
         }
 
         emit ExchangedTokens({
             sender: msg.sender,
-            resultChunk: resultChunk,
             targetLength: targetLength,
             fromIds: fromIds
         });

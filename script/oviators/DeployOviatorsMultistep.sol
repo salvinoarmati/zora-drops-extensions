@@ -22,82 +22,42 @@ contract DeployOviators is Script {
 
     struct Addresses {
         address payable deployer;
-        // address nounsTokenAddress;
-        address newAdminAddress;
-        address nounsDiscoAddress;
-        address nounsDiscoRedeemedAddress;
-        // address swapMinterAddress;
+        address oviatorsAddress;
+        address oviatorsRedeemedAddress;
     }
 
     uint64 public constant MAX_DISCO_SUPPLY = 500;
     uint256 public constant PRICE_PER_DISCO = 0.19 ether;
 
     function run() external {
-        //     // step 1 create a a Nouns Vision Disco drop
-        //     // step 2 grant nouns vision disco redeemed admin to deployer address
-        //     // step 2a: important: keep your admin access from another address. deployer will revoke
-        //     // step 3 create a a Nouns Vision Disco Redeemed drop
-        //     // step 3a: important: keep your admin access from another address. deployer will revoke
-        //     // step 4 grant nouns vision disco admin to deployer address
+        // 1. Deploy our new redeemed collection (manually in Zora)
+        // 2. Deploy our exchange minter module
+        // 2a. Set inventory of each glasses variant (setColorLimits)
+        // 3. Set our Minter Module as the Metadata Renderer on the new collection
+        // 4. Mint our 1717 tokens on the new collection (airdropped to the exchange minter contract)
 
         Addresses memory adrs = Addresses({
             deployer: payable(vm.envAddress("deployer")),
-            // nounsTokenAddress: vm.envAddress("nouns_token"),
-            newAdminAddress: vm.envAddress("new_admin_address"),
-            nounsDiscoAddress: vm.envAddress("nouns_vision_disco"), // Token before redemption
-            nounsDiscoRedeemedAddress: vm.envAddress("nouns_vision_redeemed") // Token after redemption
-            // swapMinterAddress: vm.envAddress("swap_minter_address")
+            oviatorsAddress: vm.envAddress("oviators_address"), // Token before redemption
+            oviatorsRedeemedAddress: vm.envAddress("oviators_address_redeemed") // Token after redemption
         });
 
         vm.startBroadcast(adrs.deployer);
 
-        //     if (adrs.swapMinterAddress == address(0)) {
-        //         // 3 setup the ERC721OviatorsExchangeSwapMinter (standalone contract that takes nouns and nouns vision contracts)
-        //         // set minter for NOUNS_VISION_DISCO as ERC721OviatorsExchangeSwapMinter contract
-        //         adrs.swapMinterAddress = address(new ERC721OviatorsExchangeSwapMinter({
-        //             _nounsToken: adrs.nounsTokenAddress,
-        //             _discoGlasses: adrs.nounsDiscoAddress,
-        //             _maxAirdropCutoffNounId: 200,
-        //             _costPerNoun: PRICE_PER_DISCO,
-        //             _initialOwner: adrs.newAdminAddress,
-        //             _claimPeriodEnd: 1677474000
-        //         }));
-
-        //         ERC721Drop nounsDiscoDrop = ERC721Drop(
-        //             payable(adrs.nounsDiscoAddress)
-        //         );
-        //         bytes32 minterRole = nounsDiscoDrop.MINTER_ROLE();
-        //         nounsDiscoDrop.grantRole(minterRole, adrs.swapMinterAddress);
-        //     }
-
-        // 4 setup the OviatorsExchangeMinterModule
-        //  from token = NOUNS_VISION_DISCO // to token = DISCO_VISION_REDEEMED
+        // Deploy our exchange minter module
         OviatorsExchangeMinterModule exchangeMinterModule = new OviatorsExchangeMinterModule({
-                _source: IERC721Drop(adrs.nounsDiscoAddress),
-                _sink: IERC721Drop(adrs.nounsDiscoRedeemedAddress),
-                _imagesBase: "ipfs://bafybeigrptpotjop47aptsruxngmpzfbqqc77ozntjc5ixms2iutcwrfpu/",
-                _rendererBase: "ipfs://bafybeidwdlcqc2eidjqq7afzy3hctmpav3fnrf7g2zhatvznfaoktixvoe/?id=",
-                _description: "Oviators are a limited edition, collectible eyewear collaboration between Salvino Armati and Jack Butcher"
-            });
-
-        // Allow exchange module to mint redeemed tokens
-        ERC721Drop(payable(adrs.nounsDiscoRedeemedAddress)).grantRole(
-            bytes32(0),
-            address(exchangeMinterModule)
-        );
-
-        // Sets redeemed metadata renderer and updates address of underlying redeemed edition
-        ERC721Drop(payable(adrs.nounsDiscoRedeemedAddress)).setMetadataRenderer(
-            exchangeMinterModule,
-            "0xcafe"
-        );
-
+            _source: IERC721Drop(adrs.oviatorsAddress),
+            _sink: IERC721Drop(adrs.oviatorsRedeemedAddress),
+            _imagesBase: "ipfs://bafybeigrptpotjop47aptsruxngmpzfbqqc77ozntjc5ixms2iutcwrfpu/",
+            _rendererBase: "ipfs://bafybeidwdlcqc2eidjqq7afzy3hctmpav3fnrf7g2zhatvznfaoktixvoe/?id=",
+            _description: "~~~TODO~~~" // FIXME: alskdfjalskdfa;ldkf
+        });
+        
         // Set inventory of each glassas variant. Can also be done via etherscan
         // Quantities are from https://www.notion.so/Manufacturing-Details-d875dd12244d411eaf1343c1144e04c1
-        OviatorsExchangeMinterModule.ColorSetting[]
-            memory colorSettings = new OviatorsExchangeMinterModule.ColorSetting[](
-                4
-            );
+        OviatorsExchangeMinterModule.ColorSetting[] memory colorSettings = 
+            new OviatorsExchangeMinterModule.ColorSetting[](4);
+
         colorSettings[0] = OviatorsExchangeMinterModule.ColorSetting({
             color: "OV-SILV-REG",
             maxCount: 612
@@ -116,17 +76,12 @@ contract DeployOviators is Script {
         });
         exchangeMinterModule.setColorLimits(colorSettings);
 
-        if (adrs.newAdminAddress != adrs.deployer) {
-            ERC721Drop(payable(adrs.nounsDiscoAddress)).revokeRole(
-                bytes32(0),
-                address(adrs.deployer)
-            );
+        // Sets redeemed metadata renderer and updates address of underlying redeemed edition
+        ERC721Drop(payable(adrs.oviatorsRedeemedAddress)).setMetadataRenderer(exchangeMinterModule, "");
 
-            ERC721Drop(payable(adrs.nounsDiscoRedeemedAddress)).revokeRole(
-                bytes32(0),
-                address(adrs.deployer)
-            );
-        }
+        // Admin mint our 1717 tokens to the exchange minter module
+        ERC721Drop(payable(adrs.oviatorsRedeemedAddress)).adminMint(address(exchangeMinterModule), 1717);
+
         vm.stopBroadcast();
     }
 }
