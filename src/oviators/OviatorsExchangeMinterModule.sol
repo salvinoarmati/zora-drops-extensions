@@ -14,6 +14,20 @@ contract OviatorsExchangeMinterModule is
     IMetadataRenderer,
     MetadataRenderAdminCheck
 {
+    struct ColorInfo {
+        uint128 claimedCount;
+        uint128 maxCount;
+        string animationURI;
+        string imageURI;
+    }
+
+    struct ColorSetting {
+        string color;
+        uint128 maxCount;
+        string animationURI;
+        string imageURI;
+    }
+
     event ExchangedTokens(
         address indexed sender,
         uint256 indexed resultChunk,
@@ -21,6 +35,7 @@ contract OviatorsExchangeMinterModule is
         uint256[] fromIds
     );
 
+    event UpdatedColor(string color, ColorSetting settings);
     event UpdatedDescription(string newDescription);
     event UpdatedImagesBase(string newBase);
     event UpdatedRendererBase(string newBase);
@@ -32,6 +47,9 @@ contract OviatorsExchangeMinterModule is
     string imagesBase;
     string rendererBase;
     string public contractURI;
+
+    mapping(string => ColorInfo) public colors;
+    mapping(uint256 => string) public idToColor;
 
     constructor(
         IERC721Drop _source, 
@@ -86,7 +104,33 @@ contract OviatorsExchangeMinterModule is
     function initializeWithData(bytes memory) external {
     }
 
-    function exchange(uint256[] calldata fromIds)
+    function setColorLimits(ColorSetting[] calldata colorSettings)
+        external
+        requireSenderAdmin(address(sink))
+    {
+        uint128 maxCountCache = maxCount;
+        for (uint256 i = 0; i < colorSettings.length; ) {
+            string memory color = colorSettings[i].color;
+            require(
+                colors[color].claimedCount <= colorSettings[i].maxCount,
+                "Cannot decrease beyond claimed"
+            );
+            maxCountCache -= colors[color].maxCount;
+            maxCountCache += colorSettings[i].maxCount;
+            colors[color].maxCount = colorSettings[i].maxCount;
+            colors[color].animationURI = colorSettings[i].animationURI;
+            colors[color].imageURI = colorSettings[i].imageURI;
+
+            emit UpdatedColor(color, colorSettings[i]);
+
+            unchecked {
+                ++i;
+            }
+        }
+        maxCount = maxCountCache;
+    }
+
+    function exchange(uint256[] calldata fromIds, string memory color)
         external
     {
         require(
@@ -94,6 +138,11 @@ contract OviatorsExchangeMinterModule is
             "Exchange module is not approved to manage tokens"
         );
         uint128 targetLength = uint128(fromIds.length);
+        require(
+            colors[color].claimedCount + targetLength <= colors[color].maxCount,
+            "Ran out of color"
+        );
+        colors[color].claimedCount += targetLength;
 
         uint256 resultChunk = sink.adminMint(msg.sender, targetLength);
         for (uint256 i = 0; i < targetLength; ) {
@@ -103,6 +152,7 @@ contract OviatorsExchangeMinterModule is
             // If they are not allowed, the burn call will fail.
             source.burn(fromIds[i]);
             unchecked {
+                idToColor[resultChunk - i] = color;
                 ++i;
             }
         }
