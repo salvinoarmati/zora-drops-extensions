@@ -100,27 +100,19 @@ contract DeployOviators is Script {
             );
         colorSettings[0] = OviatorsExchangeMinterModule.ColorSetting({
             color: "OV-SILV-REG",
-            maxCount: 612,
-            animationURI: "",
-            imageURI: ""
+            maxCount: 612
         });
         colorSettings[1] = OviatorsExchangeMinterModule.ColorSetting({
             color: "OV-SILV-LG",
-            maxCount: 263,
-            animationURI: "",
-            imageURI: ""
+            maxCount: 263
         });
         colorSettings[2] = OviatorsExchangeMinterModule.ColorSetting({
             color: "OV-GOLD-REG",
-            maxCount: 612,
-            animationURI: "",
-            imageURI: ""
+            maxCount: 612
         });
         colorSettings[3] = OviatorsExchangeMinterModule.ColorSetting({
             color: "OV-GOLD-LG",
-            maxCount: 263,
-            animationURI: "",
-            imageURI: ""
+            maxCount: 263
         });
         exchangeMinterModule.setColorLimits(colorSettings);
 

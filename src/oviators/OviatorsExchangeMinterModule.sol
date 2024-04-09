@@ -17,15 +17,11 @@ contract OviatorsExchangeMinterModule is
     struct ColorInfo {
         uint128 claimedCount;
         uint128 maxCount;
-        string animationURI;
-        string imageURI;
     }
 
     struct ColorSetting {
         string color;
         uint128 maxCount;
-        string animationURI;
-        string imageURI;
     }
 
     event ExchangedTokens(
@@ -118,8 +114,6 @@ contract OviatorsExchangeMinterModule is
             maxCountCache -= colors[color].maxCount;
             maxCountCache += colorSettings[i].maxCount;
             colors[color].maxCount = colorSettings[i].maxCount;
-            colors[color].animationURI = colorSettings[i].animationURI;
-            colors[color].imageURI = colorSettings[i].imageURI;
 
             emit UpdatedColor(color, colorSettings[i]);
 

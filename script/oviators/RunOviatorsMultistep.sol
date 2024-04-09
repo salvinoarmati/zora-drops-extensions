@@ -162,9 +162,7 @@ contract DeployerSignatureMinter is Script {
             );
         colorSettings[0] = OviatorsExchangeMinterModule.ColorSetting({
             color: "disco",
-            maxCount: 100,
-            animationURI: "",
-            imageURI: ""
+            maxCount: 100
         });
         exchangeMinterModule.setColorLimits(colorSettings);
 
