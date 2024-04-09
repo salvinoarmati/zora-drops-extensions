@@ -11,7 +11,6 @@ import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 contract Oviators is ERC721, Ownable {
     ERC721Drop public immutable source;
 
-    error OnlyExchange();
     error NotOwnedByClaimer();
     error NoInventory();
 
