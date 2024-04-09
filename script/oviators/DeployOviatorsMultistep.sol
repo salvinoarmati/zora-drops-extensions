@@ -22,7 +22,7 @@ contract DeployOviators is Script {
 
     struct Addresses {
         address payable deployer;
-        address nounsTokenAddress;
+        // address nounsTokenAddress;
         address newAdminAddress;
         address nounsDiscoAddress;
         address nounsDiscoRedeemedAddress;
