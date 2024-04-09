@@ -12,7 +12,7 @@ creatorProxy=0xb9583D05Ba9ba8f7F14CCEe3Da10D2bc0A72f519 deployer=0x9444390c01Dd5
 
 Deploy:
 ```
-creator_proxy=0xb9583D05Ba9ba8f7F14CCEe3Da10D2bc0A72f519 deployer=0x9444390c01Dd5b7249E53FAc31290F7dFF53450D nouns_token=0x40c8C83853C1F62eb24310333fe114484F69aA79 new_admin_address=0x9444390c01Dd5b7249E53FAc31290F7dFF53450D  forge script ./script/nouns-vision/DeployNounsVisionMultistep.sol --rpc-url $ETH_RPC_GOERLI --broadcast --interactives 1 --verify --etherscan-api-key $ETHERSCAN_API_KEY
+deployer=$DEPLOYER_ACCOUNT forge script script/oviators/DeployOviatorsMultistep.sol:DeployOviators --rpc-url $RPC_URL --broadcast --interactives 1 --verify --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
 Variables:

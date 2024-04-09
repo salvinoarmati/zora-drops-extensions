@@ -2,10 +2,14 @@
 pragma solidity ^0.8.10;
 
 import "forge-std/Script.sol";
+import "forge-std/Test.sol";
 import {ZoraNFTCreatorV1} from "zora-drops-contracts/ZoraNFTCreatorV1.sol";
 import {ZoraNFTCreatorProxy} from "zora-drops-contracts/ZoraNFTCreatorProxy.sol";
 import {ZoraFeeManager} from "zora-drops-contracts/ZoraFeeManager.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
+import {ERC721DropProxy} from "zora-drops-contracts/ERC721DropProxy.sol";
+// import {DummyMetadataRenderer} from "../../lib/zora-drops-contracts/test/utils/DummyMetadataRenderer.sol";
+import {DropMetadataRenderer} from "zora-drops-contracts/metadata/DropMetadataRenderer.sol";
 import {IERC721Drop} from "zora-drops-contracts/interfaces/IERC721Drop.sol";
 import {IMetadataRenderer} from "zora-drops-contracts/interfaces/IMetadataRenderer.sol";
 import {FactoryUpgradeGate} from "zora-drops-contracts/FactoryUpgradeGate.sol";
@@ -17,17 +21,18 @@ import {OviatorsExchangeMinterModule} from "../../src/oviators/OviatorsExchangeM
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-contract DeployOviators is Script {
+contract DeployOviators is Script, Test {
     ZoraNFTCreatorV1 creatorProxy;
 
     struct Addresses {
         address payable deployer;
         address oviatorsAddress;
-        address oviatorsRedeemedAddress;
+        // address oviatorsRedeemedAddress;
     }
 
     uint64 public constant MAX_DISCO_SUPPLY = 500;
     uint256 public constant PRICE_PER_DISCO = 0.19 ether;
+    
 
     function run() external {
         // 1. Deploy our new redeemed collection (manually in Zora)
@@ -36,18 +41,63 @@ contract DeployOviators is Script {
         // 3. Set our Minter Module as the Metadata Renderer on the new collection
         // 4. Mint our 1717 tokens on the new collection (airdropped to the exchange minter contract)
 
+        // New collection
+        ERC721Drop oviatorsRedeemedImplementation = new ERC721Drop(
+            new ZoraFeeManager(0, address(0)),
+            address(0),
+            FactoryUpgradeGate(address(0))
+        );
+
+        address payable newDrop = payable(
+            address(new ERC721DropProxy(address(oviatorsRedeemedImplementation), ""))
+        );
+        ERC721Drop oviatorsRedeemed = ERC721Drop(newDrop);
+
+        // Testing: Make an oviators address
+        ERC721Drop oviators = new ERC721Drop(
+            new ZoraFeeManager(0, address(0)),
+            address(0),
+            FactoryUpgradeGate(address(0))
+        );
+
+        oviatorsRedeemed.initialize({
+            _contractName: "Oviators",
+            _contractSymbol: "OV",
+            _initialOwner: address(vm.envAddress("deployer")),
+            _fundsRecipient: payable(vm.envAddress("deployer")),
+            _editionSize: 1717,
+            _royaltyBPS: 0,
+            _metadataRenderer: DropMetadataRenderer(address(0x123)),
+            _metadataRendererInit: "",
+            _salesConfig: IERC721Drop.SalesConfiguration({
+                publicSaleStart: 0,
+                publicSaleEnd: 0,
+                presaleStart: 0,
+                presaleEnd: 0,
+                publicSalePrice: 0,
+                maxSalePurchasePerAddress: 0,
+                presaleMerkleRoot: bytes32(0)
+            })
+        });
+
         Addresses memory adrs = Addresses({
             deployer: payable(vm.envAddress("deployer")),
-            oviatorsAddress: vm.envAddress("oviators_address"), // Token before redemption
-            oviatorsRedeemedAddress: vm.envAddress("oviators_address_redeemed") // Token after redemption
+            // oviatorsAddress: vm.envAddress("oviators_address") // Token before redemption
+            oviatorsAddress: address(oviators) // Token before redemption
+            // oviatorsAddress: vm.envAddress("oviators_address"), // Token before redemption
+            // oviatorsRedeemedAddress: vm.envAddress("oviators_address_redeemed") // Token after redemption
         });
+
+        emit log_address(address(oviatorsRedeemed));
+        // oviatorsRedeemed.
+        emit log(oviatorsRedeemed.isAdmin(adrs.deployer) ? 'is admin' : 'no admin');
 
         vm.startBroadcast(adrs.deployer);
 
         // Deploy our exchange minter module
         OviatorsExchangeMinterModule exchangeMinterModule = new OviatorsExchangeMinterModule({
             _source: IERC721Drop(adrs.oviatorsAddress),
-            _sink: IERC721Drop(adrs.oviatorsRedeemedAddress),
+            _sink: IERC721Drop(address(oviatorsRedeemed)),
             _imagesBase: "ipfs://bafybeigrptpotjop47aptsruxngmpzfbqqc77ozntjc5ixms2iutcwrfpu/",
             _rendererBase: "ipfs://bafybeidwdlcqc2eidjqq7afzy3hctmpav3fnrf7g2zhatvznfaoktixvoe/?id=",
             _description: "~~~TODO~~~" // FIXME: alskdfjalskdfa;ldkf
@@ -77,10 +127,10 @@ contract DeployOviators is Script {
         exchangeMinterModule.setColorLimits(colorSettings);
 
         // Sets redeemed metadata renderer and updates address of underlying redeemed edition
-        ERC721Drop(payable(adrs.oviatorsRedeemedAddress)).setMetadataRenderer(exchangeMinterModule, "");
+        oviatorsRedeemed.setMetadataRenderer(exchangeMinterModule, "");
 
         // Admin mint our 1717 tokens to the exchange minter module
-        ERC721Drop(payable(adrs.oviatorsRedeemedAddress)).adminMint(address(exchangeMinterModule), 1717);
+        oviatorsRedeemed.adminMint(address(exchangeMinterModule), 1717);
 
         vm.stopBroadcast();
     }
