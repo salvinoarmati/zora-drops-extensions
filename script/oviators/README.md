@@ -1,8 +1,13 @@
 # DeployOviators
 
-Test locally:
+Test locally (manual testing):
 ```
 anvil --fork-url https://mainnet.base.org --fork-block-number 12947075
+```
+
+Test:
+```
+forge test --match-path test/oviators/Oviators.t.sol --fork-url https://mainnet.base.org --fork-block-number 12947075
 ```
 
 Deploy locally:
