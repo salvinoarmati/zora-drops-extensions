@@ -59,6 +59,9 @@ contract OviatorsTest is Test {
         assertEq(oviators.balanceOf(JALIL), 1);
         assertEq(oviators.ownerOf(460), JALIL);
 
+        string memory expectedMetadata = "data:application/json;base64,eyJuYW1lIjogIk92aWF0b3JzIDQ2MCIsICJkZXNjcmlwdGlvbiI6ICJUaGUgdG9rZW4gZGVzY3JpcHRpb24iLCAiaW1hZ2UiOiAiaXBmczovL2JhZnliZWlncnB0cG90am9wNDdhcHRzcnV4bmdtcHpmYnFxYzc3b3pudGpjNWl4bXMyaXV0Y3dyZnB1LzQ2MC5wbmciLCAiYW5pbWF0aW9uX3VyaSI6ICJpcGZzOi8vYmFmeWJlaWR3ZGxjcWMyZWlkanFxN2FmenkzaGN0bXBhdjNmbnJmN2cyemhhdHZ6bmZhb2t0aXh2b2UvP2lkPTQ2MCJ9";
+        assertEq(oviators.tokenURI(460), expectedMetadata);
+
         vm.expectRevert(IERC721AUpgradeable.OwnerQueryForNonexistentToken.selector);
         oviatorsV1.ownerOf(460);
 

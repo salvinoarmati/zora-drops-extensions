@@ -153,18 +153,20 @@ contract Oviators is ERC721, Ownable {
 
     /// @notice Get the metadata for a given token.
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        string memory id = Strings.toString(tokenId);
+
         return
             string(
                 encodeMetadataJSON(
                     abi.encodePacked(
                         '{"name": "',
-                        string(abi.encodePacked("Oviators ", tokenId)),
+                        string(abi.encodePacked("Oviators ", id)),
                         '", "description": "',
                         description,
                         '", "image": "',
-                        string(abi.encodePacked(imagesBase, tokenId, ".png")),
+                        string(abi.encodePacked(imagesBase, id, ".png")),
                         '", "animation_uri": "',
-                        string(abi.encodePacked(rendererBase, tokenId)),
+                        string(abi.encodePacked(rendererBase, id)),
                         '"}'
                     )
                 )
