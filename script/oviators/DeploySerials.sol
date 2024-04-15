@@ -39,16 +39,16 @@ contract DeploySerials is Script {
         uint16[] memory inventoryCounts = new uint16[](4);
 
         inventoryKeys[0]   = "OV-SILV-REG";
-        inventoryCounts[0] = 1;
+        inventoryCounts[0] = 612;
 
         inventoryKeys[1]   = "OV-SILV-LG";
-        inventoryCounts[1] = 1;
+        inventoryCounts[1] = 263;
 
         inventoryKeys[2]   = "OV-GOLD-REG";
-        inventoryCounts[2] = 1;
+        inventoryCounts[2] = 612;
 
         inventoryKeys[3]   = "OV-GOLD-LG";
-        inventoryCounts[3] = 1;
+        inventoryCounts[3] = 263;
 
         serials.setInventory(inventoryKeys, inventoryCounts);
     }
