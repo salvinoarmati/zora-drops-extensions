@@ -5,20 +5,25 @@ import "forge-std/Script.sol";
 
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {Serials} from "../../src/oviators/Serials.sol";
+import {IPFSRenderer} from "./../../src/oviators/IPFSRenderer.sol";
 
 contract DeploySerials is Script {
     Serials serials;
+    IPFSRenderer serialsRenderer;
 
     function run() external {
         vm.startBroadcast(vm.envAddress("deployer"));
 
+        // Deploy the renderer
+        serialsRenderer = new IPFSRenderer({
+            _metadataCID: "bafybeieu6qloo6icryxfak2vflmzjr3izpyvdyjhb6cmucdcpv7zhxojnm",
+            _contractCID: "bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi"
+        });
+
         // Deploy the new collection
         serials = new Serials({
             _source: vm.envAddress("oviators_v1_address"),
-            _description: "The possibility of digital provenance.",
-            _imagesBase: "ipfs://bafybeiau63hogredyfwss5vwssk5sd4vznwcqcpefn45sebgzrd3qqumci/",
-            _rendererBase: "ipfs://bafybeigyvmqmonqlvzyhegtjiuodqakdliqparxbom6f2svsqwtavwhwoy/?id=",
-            _contractURI: "ipfs://bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi"
+            _renderer: address(serialsRenderer)
         });
 
         // Set the initial inventory for each physical category

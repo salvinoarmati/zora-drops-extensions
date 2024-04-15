@@ -44,23 +44,9 @@ contract Serials is ERC721, Ownable {
     mapping(string => InventoryItem) public inventory;
 
     /// @dev Initialize the Serials collection by linking the pre-claim collection and images, metadata, ...
-    constructor(
-        address _source,
-        string memory _description,
-        string memory _imagesBase,
-        string memory _rendererBase,
-        string memory _contractURI
-    )
-        ERC721("Serials", "SERIAL")
-    {
-        source = ERC721Drop(payable(_source));
-        renderer = new SerialsRenderer(
-            _description,
-            _imagesBase,
-            _rendererBase,
-            _contractURI
-        );
-        SerialsRenderer(address(renderer)).transferOwnership(msg.sender);
+    constructor(address _source, address _renderer) ERC721("Serials", "SERIAL") {
+        source   = ERC721Drop(payable(_source));
+        renderer = ISerialsRenderer(_renderer);
     }
 
     /// @notice Exchange a pre-claim Oviator token for the physical & post-claim collectible.

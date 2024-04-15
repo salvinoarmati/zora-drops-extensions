@@ -7,6 +7,7 @@ import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
 import {Serials} from "./../../src/oviators/Serials.sol";
 import {SerialsRenderer} from "./../../src/oviators/SerialsRenderer.sol";
+import {IPFSRenderer} from "./../../src/oviators/IPFSRenderer.sol";
 
 contract SerialsTest is Test {
     address constant VV      = 0xc8f8e2F59Dd95fF67c3d39109ecA2e2A017D4c8a;
@@ -16,17 +17,23 @@ contract SerialsTest is Test {
 
     ERC721Drop oviatorsV1 = ERC721Drop(payable(0x8991a2794cA6Fb1F0F7872b476Bb9f2FB800ADC1));
     Serials serials;
+    SerialsRenderer serialsRenderer;
 
     function setUp() public {
         vm.startPrank(VV);
 
-        // Deploy the new collection
-        serials = new Serials({
-            _source: address(oviatorsV1),
+        // Deploy the renderer
+        serialsRenderer = new SerialsRenderer({
             _description: "The possibility of digital provenance.",
             _imagesBase: "ipfs://bafybeiau63hogredyfwss5vwssk5sd4vznwcqcpefn45sebgzrd3qqumci/",
             _rendererBase: "ipfs://bafybeigyvmqmonqlvzyhegtjiuodqakdliqparxbom6f2svsqwtavwhwoy/?id=",
             _contractURI: "ipfs://bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi"
+        });
+
+        // Deploy the new collection
+        serials = new Serials({
+            _source: address(oviatorsV1),
+            _renderer: address(serialsRenderer)
         });
 
         // Set the initial inventory for each physical category
@@ -190,6 +197,27 @@ contract SerialsTest is Test {
         vm.stopPrank();
 
         renderer.setDescription("Foo Bar Baz");
+    }
+
+    function testIPFSRenderer() public {
+        vm.startPrank(VV);
+
+        // Deploy the renderer
+        IPFSRenderer renderer = new IPFSRenderer({
+            _metadataCID: "bafybeieu6qloo6icryxfak2vflmzjr3izpyvdyjhb6cmucdcpv7zhxojnm",
+            _contractCID: "bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi"
+        });
+
+        // Deploy the new collection
+        serials = new Serials({
+            _source: address(oviatorsV1),
+            _renderer: address(renderer)
+        });
+
+        assertEq(serials.tokenURI(9), "ipfs://bafybeieu6qloo6icryxfak2vflmzjr3izpyvdyjhb6cmucdcpv7zhxojnm/9");
+        assertEq(serials.contractURI(), "ipfs://bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi");
+
+        vm.stopPrank();
     }
 
     // Set inventory of each glassas variant. Can also be done via etherscan
