@@ -16,9 +16,9 @@ contract DeployOviators is Script {
         oviators = new Oviators({
             _source: vm.envAddress("oviators_v1_address"),
             _description: "The token description",
-            _imagesBase: "ipfs://bafybeigrptpotjop47aptsruxngmpzfbqqc77ozntjc5ixms2iutcwrfpu/",
-            _rendererBase: "ipfs://bafybeidwdlcqc2eidjqq7afzy3hctmpav3fnrf7g2zhatvznfaoktixvoe/?id=",
-            _contractURI: "ipfs://CONTRACT_URI"
+            _imagesBase: "ipfs://bafybeiau63hogredyfwss5vwssk5sd4vznwcqcpefn45sebgzrd3qqumci/",
+            _rendererBase: "ipfs://bafybeigyvmqmonqlvzyhegtjiuodqakdliqparxbom6f2svsqwtavwhwoy/?id=",
+            _contractURI: "ipfs://bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi"
         });
 
         // Set the initial inventory for each physical category

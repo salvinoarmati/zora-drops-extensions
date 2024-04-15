@@ -1,4 +1,3 @@
-// contracts/MyNFT.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
@@ -11,14 +10,16 @@ pragma solidity ^0.8.10;
 
 import {Ownable}    from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721}     from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {Strings}    from "@openzeppelin/contracts/utils/Strings.sol";
-import {Base64}     from "@openzeppelin/contracts/utils/Base64.sol";
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
+import {OviatorsRenderer} from "./OviatorsRenderer.sol";
 
 contract Oviators is ERC721, Ownable {
 
     /// @dev The pre-claim oviators contract. We'll burn these tokens in exchange for this new collection.
     ERC721Drop public immutable source;
+
+    /// @dev The metadata renderer for the new oviators collection.
+    OviatorsRenderer public renderer;
 
     /// @dev Thrown when a pre-claim token isn't owned by the account requesting the exchange.
     error NotOwnedByClaimer();
@@ -41,18 +42,6 @@ contract Oviators is ERC721, Ownable {
     /// @notice The inventory mapping of color identifiers to their amount info.
     mapping(string => InventoryItem) public inventory;
 
-    /// @dev The description of each token.
-    string description;
-
-    /// @dev The base URI for the token images.
-    string imagesBase;
-
-    /// @dev The base URI for the generative art renderer.
-    string rendererBase;
-
-    /// @notice The metadata for the collection.
-    string public contractURI;
-
     /// @dev Initialize the Oviators collection by linking the pre-claim collection and images, metadata, ...
     constructor(
         address _source,
@@ -64,10 +53,13 @@ contract Oviators is ERC721, Ownable {
         ERC721("Oviators", "$OVIATOR")
     {
         source = ERC721Drop(payable(_source));
-        description  = _description;
-        imagesBase   = _imagesBase;
-        rendererBase = _rendererBase;
-        contractURI = _contractURI;
+        renderer = new OviatorsRenderer(
+            _description,
+            _imagesBase,
+            _rendererBase,
+            _contractURI
+        );
+        renderer.transferOwnership(msg.sender);
     }
 
     /// @notice Exchange a pre-claim Oviator token for the physical & post-claim collectible.
@@ -131,61 +123,18 @@ contract Oviators is ERC721, Ownable {
         }
     }
 
-    /// @notice Set the description of the collection.
-    function setDescription(string memory _description) external onlyOwner {
-        description = _description;
-    }
-
-    /// @notice Set the base URL for the preview images.
-    function setImagesBase(string memory _imagesBase) external onlyOwner {
-        imagesBase = _imagesBase;
-    }
-
-    /// @notice Set the base URL for the token renderer.
-    function setRendererBase(string memory _rendererBase) external onlyOwner {
-        rendererBase = _rendererBase;
-    }
-
-    /// @notice Set the URL to the contract metadata.
-    function setContractURI(string memory _contractURI) external onlyOwner {
-        contractURI = _contractURI;
-    }
-
     /// @notice Get the metadata for a given token.
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        string memory id = Strings.toString(tokenId);
+        return renderer.tokenURI(tokenId);
+    }
 
-        return
-            string(
-                encodeMetadataJSON(
-                    abi.encodePacked(
-                        '{"name": "',
-                        string(abi.encodePacked("Oviators ", id)),
-                        '", "description": "',
-                        description,
-                        '", "image": "',
-                        string(abi.encodePacked(imagesBase, id, ".png")),
-                        '", "animation_uri": "',
-                        string(abi.encodePacked(rendererBase, id)),
-                        '"}'
-                    )
-                )
-            );
+    /// @notice The metadata for the collection.
+    function contractURI() public view returns (string memory) {
+        return renderer.contractURI();
     }
 
     /// @notice The maximum amount of tokens to exist in this collection.
     function totalSupply() external pure returns (uint256) {
         return 1717;
-    }
-
-    /// @dev Render a JSON blob as a data-encoded url.
-    function encodeMetadataJSON(bytes memory json) internal pure returns (string memory) {
-        return
-            string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64.encode(json)
-                )
-            );
     }
 }
