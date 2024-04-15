@@ -4,18 +4,18 @@ pragma solidity ^0.8.10;
 import "forge-std/Script.sol";
 
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
-import {Oviators} from "../../src/oviators/Oviators.sol";
+import {Serials} from "../../src/oviators/Serials.sol";
 
-contract DeployOviators is Script {
-    Oviators oviators;
+contract DeploySerials is Script {
+    Serials serials;
 
     function run() external {
         vm.startBroadcast(vm.envAddress("deployer"));
 
         // Deploy the new collection
-        oviators = new Oviators({
+        serials = new Serials({
             _source: vm.envAddress("oviators_v1_address"),
-            _description: "The token description",
+            _description: "The possibility of digital provenance.",
             _imagesBase: "ipfs://bafybeiau63hogredyfwss5vwssk5sd4vznwcqcpefn45sebgzrd3qqumci/",
             _rendererBase: "ipfs://bafybeigyvmqmonqlvzyhegtjiuodqakdliqparxbom6f2svsqwtavwhwoy/?id=",
             _contractURI: "ipfs://bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi"
@@ -45,6 +45,6 @@ contract DeployOviators is Script {
         inventoryKeys[3]   = "OV-GOLD-LG";
         inventoryCounts[3] = 263;
 
-        oviators.setInventory(inventoryKeys, inventoryCounts);
+        serials.setInventory(inventoryKeys, inventoryCounts);
     }
 }

@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import {Ownable}    from "@openzeppelin/contracts/access/Ownable.sol";
-import {Strings}    from "@openzeppelin/contracts/utils/Strings.sol";
-import {Base64}     from "@openzeppelin/contracts/utils/Base64.sol";
+import {Ownable}          from "@openzeppelin/contracts/access/Ownable.sol";
+import {Strings}          from "@openzeppelin/contracts/utils/Strings.sol";
+import {Base64}           from "@openzeppelin/contracts/utils/Base64.sol";
+import {ISerialsRenderer} from "./ISerialsRenderer.sol";
 
-contract OviatorsRenderer is Ownable {
+contract SerialsRenderer is ISerialsRenderer, Ownable {
 
     /// @dev The description of each token.
     string description;
@@ -19,7 +20,7 @@ contract OviatorsRenderer is Ownable {
     /// @notice The metadata for the collection.
     string public contractURI;
 
-    /// @dev Initialize the Oviators collection by linking the pre-claim collection and images, metadata, ...
+    /// @dev Initialize the Serials collection by linking the pre-claim collection and images, metadata, ...
     constructor(
         string memory _description,
         string memory _imagesBase,
@@ -61,7 +62,7 @@ contract OviatorsRenderer is Ownable {
                 encodeMetadataJSON(
                     abi.encodePacked(
                         '{"name": "',
-                        string(abi.encodePacked("Oviators ", id)),
+                        string(abi.encodePacked("Serial #", id)),
                         '", "description": "',
                         description,
                         '", "image": "',

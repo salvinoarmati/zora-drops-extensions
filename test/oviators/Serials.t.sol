@@ -5,27 +5,28 @@ import {Test} from "forge-std/Test.sol";
 
 import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
-import {Oviators} from "./../../src/oviators/Oviators.sol";
+import {Serials} from "./../../src/oviators/Serials.sol";
+import {SerialsRenderer} from "./../../src/oviators/SerialsRenderer.sol";
 
-contract OviatorsTest is Test {
+contract SerialsTest is Test {
     address constant VV      = 0xc8f8e2F59Dd95fF67c3d39109ecA2e2A017D4c8a;
     address constant JALIL   = 0xe11Da9560b51f8918295edC5ab9c0a90E9ADa20B;
     address constant HOLDER  = 0xb0161d9457f9E4EBEE1BF700dAA0001126158c68;
     uint256 constant OVIATOR = 460;
 
     ERC721Drop oviatorsV1 = ERC721Drop(payable(0x8991a2794cA6Fb1F0F7872b476Bb9f2FB800ADC1));
-    Oviators oviators;
+    Serials serials;
 
     function setUp() public {
         vm.startPrank(VV);
 
         // Deploy the new collection
-        oviators = new Oviators({
+        serials = new Serials({
             _source: address(oviatorsV1),
-            _description: "The token description",
-            _imagesBase: "ipfs://bafybeigrptpotjop47aptsruxngmpzfbqqc77ozntjc5ixms2iutcwrfpu/",
-            _rendererBase: "ipfs://bafybeidwdlcqc2eidjqq7afzy3hctmpav3fnrf7g2zhatvznfaoktixvoe/?id=",
-            _contractURI: "ipfs://CONTRACT_URI"
+            _description: "The possibility of digital provenance.",
+            _imagesBase: "ipfs://bafybeiau63hogredyfwss5vwssk5sd4vznwcqcpefn45sebgzrd3qqumci/",
+            _rendererBase: "ipfs://bafybeigyvmqmonqlvzyhegtjiuodqakdliqparxbom6f2svsqwtavwhwoy/?id=",
+            _contractURI: "ipfs://bafkreihot37xklzclupz5ylqbq2kd3gwekxtxfppxshou4xlolruzyztzi"
         });
 
         // Set the initial inventory for each physical category
@@ -41,7 +42,7 @@ contract OviatorsTest is Test {
         tokenIds[0] = 460;
 
         vm.expectRevert(IERC721AUpgradeable.TransferCallerNotOwnerNorApproved.selector);
-        oviators.claim(tokenIds, "OV-SILV-REG");
+        serials.claim(tokenIds, "OV-SILV-REG");
 
         vm.stopPrank();
     }
@@ -49,18 +50,18 @@ contract OviatorsTest is Test {
     function testExchangeWithApproval() public {
         vm.startPrank(JALIL);
 
-        oviatorsV1.setApprovalForAll(address(oviators), true);
+        oviatorsV1.setApprovalForAll(address(serials), true);
 
         uint[] memory tokenIds = new uint[](1);
         tokenIds[0] = 460;
 
-        oviators.claim(tokenIds, "OV-SILV-REG");
+        serials.claim(tokenIds, "OV-SILV-REG");
 
-        assertEq(oviators.balanceOf(JALIL), 1);
-        assertEq(oviators.ownerOf(460), JALIL);
+        assertEq(serials.balanceOf(JALIL), 1);
+        assertEq(serials.ownerOf(460), JALIL);
 
-        string memory expectedMetadata = "data:application/json;base64,eyJuYW1lIjogIk92aWF0b3JzIDQ2MCIsICJkZXNjcmlwdGlvbiI6ICJUaGUgdG9rZW4gZGVzY3JpcHRpb24iLCAiaW1hZ2UiOiAiaXBmczovL2JhZnliZWlncnB0cG90am9wNDdhcHRzcnV4bmdtcHpmYnFxYzc3b3pudGpjNWl4bXMyaXV0Y3dyZnB1LzQ2MC5wbmciLCAiYW5pbWF0aW9uX3VyaSI6ICJpcGZzOi8vYmFmeWJlaWR3ZGxjcWMyZWlkanFxN2FmenkzaGN0bXBhdjNmbnJmN2cyemhhdHZ6bmZhb2t0aXh2b2UvP2lkPTQ2MCJ9";
-        assertEq(oviators.tokenURI(460), expectedMetadata);
+        string memory expectedMetadata = "data:application/json;base64,eyJuYW1lIjogIlNlcmlhbCAjNDYwIiwgImRlc2NyaXB0aW9uIjogIlRoZSBwb3NzaWJpbGl0eSBvZiBkaWdpdGFsIHByb3ZlbmFuY2UuIiwgImltYWdlIjogImlwZnM6Ly9iYWZ5YmVpYXU2M2hvZ3JlZHlmd3NzNXZ3c3NrNXNkNHZ6bndjcWNwZWZuNDVzZWJnenJkM3FxdW1jaS80NjAucG5nIiwgImFuaW1hdGlvbl91cmkiOiAiaXBmczovL2JhZnliZWlneXZtcW1vbnFsdnp5aGVndGppdW9kcWFrZGxpcXBhcnhib202ZjJzdnNxd3Rhdndod295Lz9pZD00NjAifQ==";
+        assertEq(serials.tokenURI(460), expectedMetadata);
 
         vm.expectRevert(IERC721AUpgradeable.OwnerQueryForNonexistentToken.selector);
         oviatorsV1.ownerOf(460);
@@ -71,17 +72,17 @@ contract OviatorsTest is Test {
     function testExchangeManyWithApproval() public {
         vm.startPrank(HOLDER);
 
-        oviatorsV1.setApprovalForAll(address(oviators), true);
+        oviatorsV1.setApprovalForAll(address(serials), true);
 
         uint[] memory tokenIds = new uint[](3);
         tokenIds[0] = 21;
         tokenIds[1] = 62;
         tokenIds[2] = 68;
 
-        oviators.claim(tokenIds, "OV-SILV-LG");
+        serials.claim(tokenIds, "OV-SILV-LG");
 
-        assertEq(oviators.balanceOf(HOLDER), 3);
-        assertEq(oviators.ownerOf(21), HOLDER);
+        assertEq(serials.balanceOf(HOLDER), 3);
+        assertEq(serials.ownerOf(21), HOLDER);
 
         vm.expectRevert(IERC721AUpgradeable.OwnerQueryForNonexistentToken.selector);
         oviatorsV1.ownerOf(21);
@@ -91,8 +92,8 @@ contract OviatorsTest is Test {
 
         uint[] memory moreTokenIds = new uint[](1);
         moreTokenIds[0] = 73;
-        vm.expectRevert(Oviators.NoInventory.selector);
-        oviators.claim(moreTokenIds, "OV-SILV-LG");
+        vm.expectRevert(Serials.NoInventory.selector);
+        serials.claim(moreTokenIds, "OV-SILV-LG");
 
         vm.stopPrank();
     }
@@ -108,46 +109,43 @@ contract OviatorsTest is Test {
         inventoryCounts[1] = 1;
 
         vm.expectRevert("Ownable: caller is not the owner");
-        oviators.setInventory(inventoryKeys, inventoryCounts);
+        serials.setInventory(inventoryKeys, inventoryCounts);
     }
 
     function testSetInventory() public {
         vm.startPrank(VV);
 
         // Set minimal Inventory
-        string[] memory inventoryKeys = new string[](2);
-        uint16[] memory inventoryCounts = new uint16[](2);
+        string[] memory inventoryKeys = new string[](1);
+        uint16[] memory inventoryCounts = new uint16[](1);
 
-        inventoryKeys[0]   = "OV-SILV-REG";
+        inventoryKeys[0]   = "OV-SILV-LG";
         inventoryCounts[0] = 1;
 
-        inventoryKeys[1]   = "OV-SILV-LG";
-        inventoryCounts[1] = 1;
-
-        oviators.setInventory(inventoryKeys, inventoryCounts);
+        serials.setInventory(inventoryKeys, inventoryCounts);
 
         vm.stopPrank();
         vm.startPrank(HOLDER);
 
-        oviatorsV1.setApprovalForAll(address(oviators), true);
+        oviatorsV1.setApprovalForAll(address(serials), true);
 
         uint[] memory tokenIds = new uint[](2);
         tokenIds[0] = 118;
         tokenIds[1] = 119;
 
-        vm.expectRevert(Oviators.NoInventory.selector);
-        oviators.claim(tokenIds, "OV-SILV-LG");
+        vm.expectRevert(Serials.NoInventory.selector);
+        serials.claim(tokenIds, "OV-SILV-LG");
 
         uint[] memory tokenIds2 = new uint[](1);
         tokenIds2[0] = 118;
 
-        oviators.claim(tokenIds2, "OV-SILV-LG");
+        serials.claim(tokenIds2, "OV-SILV-LG");
 
         uint[] memory tokenIds3 = new uint[](1);
         tokenIds3[0] = 119;
 
-        vm.expectRevert(Oviators.NoInventory.selector);
-        oviators.claim(tokenIds3, "OV-SILV-LG");
+        vm.expectRevert(Serials.NoInventory.selector);
+        serials.claim(tokenIds3, "OV-SILV-LG");
 
         // Increase inventory again
         string[] memory inventoryKeys2 = new string[](1);
@@ -157,13 +155,41 @@ contract OviatorsTest is Test {
         inventoryCounts2[0] = 263;
 
         vm.startPrank(VV);
-        oviators.setInventory(inventoryKeys2, inventoryCounts2);
+        serials.setInventory(inventoryKeys2, inventoryCounts2);
         vm.stopPrank();
 
         vm.startPrank(HOLDER);
-        oviators.claim(tokenIds3, "OV-SILV-LG");
-        assertEq(oviators.ownerOf(119), HOLDER);
+        serials.claim(tokenIds3, "OV-SILV-LG");
+        assertEq(serials.ownerOf(119), HOLDER);
         vm.stopPrank();
+
+        vm.startPrank(VV);
+        string[] memory inventoryKeys3 = new string[](1);
+        uint16[] memory inventoryCounts3 = new uint16[](1);
+        inventoryKeys3[0]   = "OV-SILV-LG";
+        inventoryCounts3[0] = 1;
+
+        vm.expectRevert(Serials.InventoryOverallocated.selector);
+        serials.setInventory(inventoryKeys3, inventoryCounts3);
+        vm.stopPrank();
+    }
+
+    function testSetRenderer() public {
+        SerialsRenderer renderer = new SerialsRenderer(
+            "Foo",
+            "Bar",
+            "Baz",
+            "Huhu"
+        );
+
+        vm.expectRevert("Ownable: caller is not the owner");
+        serials.setRenderer(address(renderer));
+
+        vm.startPrank(VV);
+        serials.setRenderer(address(renderer));
+        vm.stopPrank();
+
+        renderer.setDescription("Foo Bar Baz");
     }
 
     // Set inventory of each glassas variant. Can also be done via etherscan
@@ -184,6 +210,6 @@ contract OviatorsTest is Test {
         inventoryKeys[3]   = "OV-GOLD-LG";
         inventoryCounts[3] = 263;
 
-        oviators.setInventory(inventoryKeys, inventoryCounts);
+        serials.setInventory(inventoryKeys, inventoryCounts);
     }
 }

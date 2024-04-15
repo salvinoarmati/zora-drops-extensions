@@ -7,3 +7,4 @@ out/
 !.env.example
 
 broadcast/DeployOviators.sol/8453
+broadcast/DeploySerials.sol/8453

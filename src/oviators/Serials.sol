@@ -8,18 +8,19 @@ pragma solidity ^0.8.10;
 //        ▀██████▀    ▀██████▀
 //
 
-import {Ownable}    from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC721}     from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC721Drop} from "zora-drops-contracts/ERC721Drop.sol";
-import {OviatorsRenderer} from "./OviatorsRenderer.sol";
+import {Ownable}          from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC721}           from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Drop}       from "zora-drops-contracts/ERC721Drop.sol";
+import {ISerialsRenderer} from "./ISerialsRenderer.sol";
+import {SerialsRenderer}  from "./SerialsRenderer.sol";
 
-contract Oviators is ERC721, Ownable {
+contract Serials is ERC721, Ownable {
 
     /// @dev The pre-claim oviators contract. We'll burn these tokens in exchange for this new collection.
     ERC721Drop public immutable source;
 
-    /// @dev The metadata renderer for the new oviators collection.
-    OviatorsRenderer public renderer;
+    /// @dev The metadata renderer for the new serials collection.
+    ISerialsRenderer public renderer;
 
     /// @dev Thrown when a pre-claim token isn't owned by the account requesting the exchange.
     error NotOwnedByClaimer();
@@ -42,7 +43,7 @@ contract Oviators is ERC721, Ownable {
     /// @notice The inventory mapping of color identifiers to their amount info.
     mapping(string => InventoryItem) public inventory;
 
-    /// @dev Initialize the Oviators collection by linking the pre-claim collection and images, metadata, ...
+    /// @dev Initialize the Serials collection by linking the pre-claim collection and images, metadata, ...
     constructor(
         address _source,
         string memory _description,
@@ -50,16 +51,16 @@ contract Oviators is ERC721, Ownable {
         string memory _rendererBase,
         string memory _contractURI
     )
-        ERC721("Oviators", "$OVIATOR")
+        ERC721("Serials", "SERIAL")
     {
         source = ERC721Drop(payable(_source));
-        renderer = new OviatorsRenderer(
+        renderer = new SerialsRenderer(
             _description,
             _imagesBase,
             _rendererBase,
             _contractURI
         );
-        renderer.transferOwnership(msg.sender);
+        SerialsRenderer(address(renderer)).transferOwnership(msg.sender);
     }
 
     /// @notice Exchange a pre-claim Oviator token for the physical & post-claim collectible.
@@ -121,6 +122,11 @@ contract Oviators is ERC721, Ownable {
               ++i;
             }
         }
+    }
+
+    /// @notice Set the metadata renderer contract.
+    function setRenderer(address _renderer) external onlyOwner {
+        renderer = ISerialsRenderer(_renderer);
     }
 
     /// @notice Get the metadata for a given token.
